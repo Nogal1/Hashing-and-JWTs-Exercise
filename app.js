@@ -5,12 +5,17 @@ const express = require("express");
 const cors = require("cors");
 const { authenticateJWT } = require("./middleware/auth");
 
+const path = require('path');
+
 const ExpressError = require("./expressError")
 const app = express();
 
 // allow both form-encoded and json body parsing
 app.use(express.json());
 app.use(express.urlencoded({extended: true}));
+
+// Serve static files from the /public directory
+app.use(express.static(path.join(__dirname, 'public')));
 
 // allow connections to all routes from any browser
 app.use(cors());
@@ -24,10 +29,9 @@ const authRoutes = require("./routes/auth");
 const userRoutes = require("./routes/users");
 const messageRoutes = require("./routes/messages");
 
-app.use("/auth", authRoutes);
-app.use("/users", userRoutes);
-app.use("/messages", messageRoutes);
-
+app.use("/auth", authRoutes); // No authentication required
+app.use("/users", authenticateJWT, userRoutes); // Requires authentication
+app.use("/messages", authenticateJWT, messageRoutes); // Requires authentication
 /** 404 handler */
 
 app.use(function(req, res, next) {

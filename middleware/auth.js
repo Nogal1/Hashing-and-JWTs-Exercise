@@ -6,15 +6,19 @@ const { SECRET_KEY } = require("../config");
 /** Middleware: Authenticate user. */
 
 function authenticateJWT(req, res, next) {
-  try {
-    const tokenFromBody = req.body._token;
-    const payload = jwt.verify(tokenFromBody, SECRET_KEY);
-    req.user = payload; // create a current user
-    return next();
-  } catch (err) {
-    return next();
-  }
+    try {
+        const authHeader = req.headers.authorization;
+        const token = authHeader && authHeader.split(' ')[1]; // Extract token from 'Bearer <token>'
+        if (token == null) return res.sendStatus(401);
+
+        const payload = jwt.verify(token, SECRET_KEY);
+        req.user = payload; // Attach payload to req.user
+        return next();
+    } catch (err) {
+        return next(new ExpressError("Unauthorized", 401));
+    }
 }
+
 
 /** Middleware: Requires user is authenticated. */
 
