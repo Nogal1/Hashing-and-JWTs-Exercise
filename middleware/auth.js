@@ -6,18 +6,34 @@ const { SECRET_KEY } = require("../config");
 /** Middleware: Authenticate user. */
 
 function authenticateJWT(req, res, next) {
-    try {
-        const authHeader = req.headers.authorization;
-        const token = authHeader && authHeader.split(' ')[1]; // Extract token from 'Bearer <token>'
-        if (token == null) return res.sendStatus(401);
+  // Skip authentication for specific routes
+  const pathsToSkip = ['/auth/login', '/auth/register'];
+  if (pathsToSkip.includes(req.path)) {
+    return next();
+  }
 
-        const payload = jwt.verify(token, SECRET_KEY);
-        req.user = payload; // Attach payload to req.user
-        return next();
-    } catch (err) {
-        return next(new ExpressError("Unauthorized", 401));
+  try {
+    // Attempt to get the token from the Authorization header
+    const authHeader = req.headers.authorization;
+    const tokenFromHeader = authHeader && authHeader.split(' ')[1]; // Extract token from 'Bearer <token>'
+
+    // If the token is not in the header, get it from the body
+    const token = tokenFromHeader || req.body._token;
+
+    // If no token is found, return a 401 Unauthorized status
+    if (!token) {
+      return res.sendStatus(401); // No token, unauthorized
     }
+
+    // Verify the token
+    const payload = jwt.verify(token, SECRET_KEY);
+    req.user = payload; // Attach payload to req.user
+    return next();
+  } catch (err) {
+    return next(new ExpressError("Unauthorized", 401));
+  }
 }
+
 
 
 /** Middleware: Requires user is authenticated. */

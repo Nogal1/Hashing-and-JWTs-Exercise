@@ -96,6 +96,28 @@ class Message {
       read_at: m.read_at,
     };
   }
+
+  /** Get all messages sent by the user */
+  static async getMessagesFrom(username) {
+    const result = await db.query(
+      `SELECT id, from_username, to_username, body, sent_at, read_at 
+       FROM messages 
+       WHERE from_username = $1`,
+      [username]
+    );
+    return result.rows;
+  }
+
+  /** Get all messages received by the user */
+  static async getMessagesTo(username) {
+    const result = await db.query(
+      `SELECT id, from_username, to_username, body, sent_at, read_at 
+       FROM messages 
+       WHERE to_username = $1`,
+      [username]
+    );
+    return result.rows;
+  }
 }
 
 

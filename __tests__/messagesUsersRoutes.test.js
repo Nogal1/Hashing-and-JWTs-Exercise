@@ -25,15 +25,15 @@ describe("User and Message Routes Test", function () {
       password: "password",
       first_name: "Test",
       last_name: "User",
-      phone: "+14155550000",
+      phone: "+1415555000",
     });
 
     otherUser = await User.register({
       username: "otheruser",
       password: "password",
       first_name: "Other",
-      last_name: "User",
-      phone: "+14155551111",
+      last_name: "User1",
+      phone: "+1415555111",
     });
 
     // Generate token for testUser
@@ -139,7 +139,7 @@ describe("User and Message Routes Test", function () {
     test("fails if not sender or recipient", async function () {
       let response = await request(app)
         .get(`/messages/${testMessage.id}`)
-        .send({ _token: "invalidtoken" }); // Token in body
+        .send({ _token: '' }); // Token in body
 
       expect(response.statusCode).toEqual(401);
     });
@@ -175,7 +175,7 @@ describe("User and Message Routes Test", function () {
     test("fails if not recipient", async function () {
       let response = await request(app)
         .post(`/messages/${testMessage.id}/read`)
-        .send({ _token: "invalidtoken" }); // Token in body
+        .send({ _token: '' }); // Token in body
 
       expect(response.statusCode).toEqual(401);
     });

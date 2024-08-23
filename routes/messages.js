@@ -4,6 +4,23 @@ const { ensureLoggedIn } = require('../middleware/auth');
 const ExpressError = require('../expressError');
 const router = new express.Router();
 
+
+/** GET / - get all messages related to the logged-in user */
+router.get('/', ensureLoggedIn, async function(req, res, next) {
+    try {
+      const messagesSent = await Message.getMessagesFrom(req.user.username);
+      const messagesReceived = await Message.getMessagesTo(req.user.username);
+  
+      // Combine sent and received messages into one array
+      const allMessages = [...messagesSent, ...messagesReceived];
+  
+      return res.json({ messages: allMessages });
+    } catch (err) {
+      return next(err);
+    }
+  });
+  
+
 /** GET /:id - get detail of message. */
 router.get('/:id', ensureLoggedIn, async function(req, res, next) {
   try {

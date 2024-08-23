@@ -32,65 +32,71 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // Handle Login
-    const loginForm = document.getElementById('login-form');
-    if (loginForm) {
-        loginForm.addEventListener('submit', async function (e) {
-            e.preventDefault();
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
+const loginForm = document.getElementById('login-form');
+if (loginForm) {
+    loginForm.addEventListener('submit', async function (e) {
+        e.preventDefault();
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
 
-            try {
-                const res = await fetch('/auth/login', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username, password })
-                });
+        try {
+            const res = await fetch('/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password })
+            });
 
-                const data = await res.json();
-                if (res.ok) {
-                    localStorage.setItem('token', data.token);
-                    window.location.href = 'messages.html';
-                } else {
-                    document.getElementById('login-error').innerText = data.message || 'Login failed';
-                }
-            } catch (err) {
-                console.error('Error:', err);
-                document.getElementById('login-error').innerText = 'Login failed';
+            if (!res.ok) {
+                const errorText = await res.text(); // Read the response as text
+                document.getElementById('login-error').innerText = errorText || 'Login failed';
+                return;
             }
-        });
-    }
+
+            const data = await res.json();
+            localStorage.setItem('token', data.token); // Store the JWT token in local storage
+            window.location.href = 'messages.html'; // Redirect to messages page after successful login
+        } catch (err) {
+            console.error('Error:', err);
+            document.getElementById('login-error').innerText = 'Login failed';
+        }
+    });
+}
+
 
     // Fetch Messages
-    const messagesContainer = document.getElementById('messages-container');
-    if (messagesContainer) {
-        async function fetchMessages() {
-            const token = localStorage.getItem('token');
-            try {
-                const res = await fetch('/messages', {
-                    method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`  // Include the token in the Authorization header
-                    }
-                });
-
-                const data = await res.json();
-                if (res.ok) {
-                    data.messages.forEach(message => {
-                        const messageDiv = document.createElement('div');
-                        messageDiv.innerHTML = `<strong>${message.from_user.username}</strong>: ${message.body}`;
-                        messagesContainer.appendChild(messageDiv);
-                    });
-                } else {
-                    messagesContainer.innerText = 'Failed to load messages';
+const messagesContainer = document.getElementById('messages-container');
+if (messagesContainer) {
+    async function fetchMessages() {
+        const token = localStorage.getItem('token');
+        try {
+            const res = await fetch('/messages', {
+                method: 'GET',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`  // Include the token in the Authorization header
                 }
-            } catch (err) {
-                console.error('Error:', err);
+            });
+
+            const data = await res.json();
+            if (res.ok) {
+                data.messages.forEach(message => {
+                    const messageDiv = document.createElement('div');
+                    messageDiv.innerHTML = `
+                        <strong>${message.from_username}</strong> to <strong>${message.to_username}</strong>: ${message.body}
+                    `;
+                    messagesContainer.appendChild(messageDiv);
+                });
+            } else {
                 messagesContainer.innerText = 'Failed to load messages';
             }
+        } catch (err) {
+            console.error('Error:', err);
+            messagesContainer.innerText = 'Failed to load messages';
         }
-        fetchMessages();
     }
+    fetchMessages();
+}
+
 
     // Fetch and Display Message Details
     const messageDetailContainer = document.getElementById('message-detail-container');
@@ -101,7 +107,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const token = localStorage.getItem('token');
             try {
                 const res = await fetch(`/messages/${messageId}`, {
-                    method: 'POST',
+                    method: 'GET',
                     headers: { 
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${token}`  // Include the token in the Authorization header
@@ -110,7 +116,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 const data = await res.json();
                 if (res.ok) {
-                    messageDetailContainer.innerHTML = `<h2>From: ${data.message.from_user.username}</h2><p>${data.message.body}</p>`;
+                    messageDetailContainer.innerHTML = `<h2>From: ${data.message.from_username}</h2><p>${data.message.body}</p>`;
                 } else {
                     messageDetailContainer.innerText = 'Failed to load message details';
                 }

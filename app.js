@@ -30,8 +30,9 @@ const userRoutes = require("./routes/users");
 const messageRoutes = require("./routes/messages");
 
 app.use("/auth", authRoutes); // No authentication required
-app.use("/users", authenticateJWT, userRoutes); // Requires authentication
+app.use("/users", userRoutes); // Requires authentication
 app.use("/messages", authenticateJWT, messageRoutes); // Requires authentication
+
 /** 404 handler */
 
 app.use(function(req, res, next) {

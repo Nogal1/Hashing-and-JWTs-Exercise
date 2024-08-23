@@ -41,7 +41,7 @@ router.post('/register', async function(req, res, next) {
 
 /** GET /register - render registration page */
 router.get('/register', function(req, res, next) {
-    res.sendFile(path.join(__dirname, '../public/html/register.html'));
-  });
+  res.sendFile(path.join(__dirname, '../public/html/register.html'));
+});
 
 module.exports = router;
